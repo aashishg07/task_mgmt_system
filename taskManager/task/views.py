@@ -1,4 +1,3 @@
-from django.shortcuts import render, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -20,8 +19,7 @@ class TaskView(APIView):
         if request.user.is_superuser:
 
             if employee:
-                employee = get_object_or_404(User, username=employee)
-                tasks = task_model.objects.filter(created_by=employee)
+                tasks = task_model.objects.filter(created_by=User)
             elif id:
                 tasks = task_model.objects.filter(id=id)
             else:
@@ -29,16 +27,14 @@ class TaskView(APIView):
         else:
  
             if id:
-                tasks = task_model.objects.filter(id=id, created_by=request.user)
+                tasks = task_model.objects.filter(id=id, created_by=User)
             else:
-                tasks = task_model.objects.filter(created_by=request.user)
+                tasks = task_model.objects.all()
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
     def post(self, request, format=None):
-        '''
-            create a task
-        '''
+
         serializer = TaskSerializer(data=request.data)
         if serializer.is_valid():
             task = serializer.save()
